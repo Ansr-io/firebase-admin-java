@@ -1,6 +1,17 @@
 
 ## fetch upstream changes
 
+add the upstream origin
+    
+    git remote add upstream https://github.com/firebase/firebase-admin-java.git
+    git remote -v
+        origin	git@github.com:Ansr-io/firebase-admin-java (fetch)
+        origin	git@github.com:Ansr-io/firebase-admin-java (push)
+        upstream	https://github.com/firebase/firebase-admin-java.git (fetch)
+        upstream	https://github.com/firebase/firebase-admin-java.git (push)
+        
+fetch the latest changes and merge 
+        
     git fetch upstream
     git merge upstream/master 
 
