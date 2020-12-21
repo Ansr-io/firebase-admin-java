@@ -78,7 +78,7 @@ final class FirebaseMessagingClientImpl implements FirebaseMessagingClient {
 
   private FirebaseMessagingClientImpl(Builder builder) {
     checkArgument(!Strings.isNullOrEmpty(builder.projectId));
-    this.fcmSendUrl = String.format(FCM_URL, builder.projectId);
+    this.fcmSendUrl = String.format(provideFcmHost(FCM_URL), builder.projectId);
     this.requestFactory = checkNotNull(builder.requestFactory);
     this.childRequestFactory = checkNotNull(builder.childRequestFactory);
     this.jsonFactory = checkNotNull(builder.jsonFactory);
@@ -87,6 +87,21 @@ final class FirebaseMessagingClientImpl implements FirebaseMessagingClient {
     this.httpClient = new ErrorHandlingHttpClient<>(requestFactory, jsonFactory, errorHandler)
       .setInterceptor(responseInterceptor);
     this.batchClient = new MessagingBatchClient(requestFactory.getTransport(), jsonFactory);
+  }
+
+  private static String provideFcmHost(final String url) {
+    String fcmEnvHost = System.getProperty("FCM_HOST");
+    if (fcmEnvHost == null) {
+      fcmEnvHost = System.getenv("FCM_HOST");
+    }
+    String fcmHost;
+    if (fcmEnvHost != null) {
+      fcmHost = url.replace("https://fcm.googleapis.com", fcmEnvHost);
+      System.out.println("Fcm host:" + fcmHost);
+      return fcmHost;
+    }
+    System.out.println("Fcm host was not changed:" + url);
+    return url;
   }
 
   @VisibleForTesting
@@ -139,7 +154,7 @@ final class FirebaseMessagingClientImpl implements FirebaseMessagingClient {
       return new BatchResponseImpl(callback.getResponses());
     } catch (HttpResponseException e) {
       OutgoingHttpRequest req = new OutgoingHttpRequest(
-          HttpMethods.POST, MessagingBatchClient.FCM_BATCH_URL);
+              HttpMethods.POST, provideFcmHost(MessagingBatchClient.FCM_BATCH_URL));
       IncomingHttpResponse resp = new IncomingHttpResponse(e, req);
       throw errorHandler.handleHttpResponseException(e, resp);
     } catch (IOException e) {
